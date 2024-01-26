@@ -1,0 +1,39 @@
+name: tests
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  run-tests-ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+        os: ['ubuntu-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install MuJoCo dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libosmesa6-dev
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e '.[dev,test]'
+    - name: Check quality
+      run: |
+        make quality
+    - name: Run tests
+      run: |
+        make test
+
